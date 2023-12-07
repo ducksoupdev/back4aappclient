@@ -1,4 +1,4 @@
-# back4aappclient
+# back4app
 
 Go library for accessing the [Back4App API](https://www.back4app.com/)
 

@@ -7,7 +7,8 @@ Go library for accessing the [Back4App API](https://www.back4app.com/)
 Back4app is compatible with modern Go releases in module mode, with Go installed:
 
 ```bash
-go get github.com/ducksoupdev/back4app
+go get github.com/ducksoupdev/back4app/user
+go get github.com/ducksoupdev/back4app/object
 ```
 
 will resolve and add the package to the current development module, along with its dependencies.

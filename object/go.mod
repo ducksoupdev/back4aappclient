@@ -1,4 +1,4 @@
-module github.com/ducksoupdev/back4app
+module github.com/ducksoupdev/back4app/objects
 
 go 1.20
 

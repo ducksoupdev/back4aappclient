@@ -1,4 +1,4 @@
-package session
+package user
 
 import (
 	"bytes"
@@ -19,7 +19,7 @@ const (
 	revocableHeader     = "X-Parse-Revocable-Session"
 )
 
-type Session struct {
+type User struct {
 	client        *http.Client
 	baseUrl       *url.URL
 	applicationId string
@@ -27,28 +27,27 @@ type Session struct {
 	sessionToken  string
 }
 
-func NewSession(httpClient *http.Client) *Session {
-	s := &Session{client: httpClient}
-	s.initialize()
-	return s
-}
-
-func (s *Session) initialize() {
+func NewUser(applicationId string, restApiKey string, httpClient *http.Client, baseUrl *url.URL) *User {
+	s := &User{
+		client:        httpClient,
+		baseUrl:       baseUrl,
+		applicationId: applicationId,
+		restApiKey:    restApiKey,
+	}
 	if s.client == nil {
 		s.client = &http.Client{}
 	}
 	if s.baseUrl == nil {
 		s.baseUrl, _ = url.Parse(back4appBaseUrl)
 	}
+	return s
 }
 
-func (s *Session) login(username string, password string) (string, error) {
+func (s *User) login(username string, password string) (string, error) {
 	// Define the parameters
 	params := url.Values{}
-	usernameB, _ := json.Marshal(username)
-	passwordB, _ := json.Marshal(password)
-	params.Add("username", string(usernameB))
-	params.Add("password", string(passwordB))
+	params.Add("username", username)
+	params.Add("password", password)
 
 	// Create the URL with the parameters
 	loginUrl, _ := url.Parse("/login")
@@ -75,6 +74,11 @@ func (s *Session) login(username string, password string) (string, error) {
 		}
 	}(resp.Body)
 
+	// check the status code
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.New(fmt.Sprintf("unable to login: %d", resp.StatusCode))
+	}
+
 	// Parse the response
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -85,7 +89,8 @@ func (s *Session) login(username string, password string) (string, error) {
 	return s.sessionToken, nil
 }
 
-func (s *Session) createUser(data map[string]interface{}) (string, error) {
+func (s *User) signUp(data map[string]interface{}) (string, error) {
+	// create the URL
 	usersUrl, _ := url.Parse("/users")
 	createUserUrl := s.baseUrl.ResolveReference(usersUrl)
 
@@ -112,6 +117,11 @@ func (s *Session) createUser(data map[string]interface{}) (string, error) {
 		}
 	}(resp.Body)
 
+	// check the status code
+	if resp.StatusCode != http.StatusCreated {
+		return "", errors.New(fmt.Sprintf("unable to sign up: %d", resp.StatusCode))
+	}
+
 	// Parse the response
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -122,7 +132,8 @@ func (s *Session) createUser(data map[string]interface{}) (string, error) {
 	return s.sessionToken, nil
 }
 
-func (s *Session) passwordReset(email string) error {
+func (s *User) requestPasswordReset(email string) error {
+	// create the URL
 	resetUrl, _ := url.Parse("/requestPasswordReset")
 	requestPasswordResetUrl := s.baseUrl.ResolveReference(resetUrl)
 
@@ -150,7 +161,7 @@ func (s *Session) passwordReset(email string) error {
 
 	// Parse the response
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("request password reset failed")
+		return errors.New(fmt.Sprintf("request password reset failed: %d", resp.StatusCode))
 	}
 
 	return nil

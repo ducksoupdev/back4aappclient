@@ -123,7 +123,7 @@ func TestListError(t *testing.T) {
 	list, err := c.List("className")
 	assert.Nil(t, list)
 	assert.Error(t, err)
-	assert.Equal(t, "unable to list object: 400", err.Error())
+	assert.Equal(t, "unable to list objects: 400", err.Error())
 }
 
 func TestUpdate(t *testing.T) {

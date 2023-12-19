@@ -19,6 +19,15 @@ const (
 	sessionTokenHeader  = "X-Parse-Session-Token"
 )
 
+type Error struct {
+	StatusCode int
+	Err        error
+}
+
+func (r *Error) Error() string {
+	return fmt.Sprintf("%v: %d", r.Err, r.StatusCode)
+}
+
 type Object struct {
 	httpClient    *http.Client
 	baseUrl       *url.URL
@@ -44,7 +53,7 @@ func NewObject(applicationId string, restApiKey string, sessionToken string, htt
 	return c
 }
 
-func (c *Object) Create(className string, data map[string]interface{}) (map[string]interface{}, error) {
+func (c *Object) Create(className string, data map[string]interface{}) (map[string]interface{}, *Error) {
 	// create the URL
 	createUrl, _ := url.Parse(fmt.Sprintf("/classes/%s", className))
 	createClassUrl := c.baseUrl.ResolveReference(createUrl)
@@ -63,7 +72,7 @@ func (c *Object) Create(className string, data map[string]interface{}) (map[stri
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return nil, err
+		return nil, &Error{StatusCode: 500, Err: err}
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -74,20 +83,20 @@ func (c *Object) Create(className string, data map[string]interface{}) (map[stri
 
 	// check the status code
 	if resp.StatusCode != http.StatusCreated {
-		return nil, errors.New(fmt.Sprintf("unable to create object: %d", resp.StatusCode))
+		return nil, &Error{StatusCode: resp.StatusCode, Err: errors.New("unable to create object")}
 	}
 
 	// parse the result
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		return nil, err
+		return nil, &Error{StatusCode: 500, Err: err}
 	}
 
 	return result, nil
 }
 
-func (c *Object) Delete(className string, id string) (bool, error) {
+func (c *Object) Delete(className string, id string) (bool, *Error) {
 	// create the URL
 	deleteUrl, _ := url.Parse(fmt.Sprintf("/classes/%s/%s", className, id))
 	deleteClassUrl := c.baseUrl.ResolveReference(deleteUrl)
@@ -103,18 +112,18 @@ func (c *Object) Delete(className string, id string) (bool, error) {
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return false, err
+		return false, &Error{StatusCode: 500, Err: err}
 	}
 
 	// check the status code
 	if resp.StatusCode != http.StatusOK {
-		return false, errors.New(fmt.Sprintf("unable to delete object: %d", resp.StatusCode))
+		return false, &Error{StatusCode: resp.StatusCode, Err: errors.New("unable to delete object")}
 	}
 
 	return true, nil
 }
 
-func (c *Object) Read(className string, id string) (map[string]interface{}, error) {
+func (c *Object) Read(className string, id string) (map[string]interface{}, *Error) {
 	// create the URL
 	readUrl, _ := url.Parse(fmt.Sprintf("/classes/%s/%s", className, id))
 	readClassUrl := c.baseUrl.ResolveReference(readUrl)
@@ -130,7 +139,7 @@ func (c *Object) Read(className string, id string) (map[string]interface{}, erro
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return nil, err
+		return nil, &Error{StatusCode: 500, Err: err}
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -141,20 +150,23 @@ func (c *Object) Read(className string, id string) (map[string]interface{}, erro
 
 	// check the status code
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(fmt.Sprintf("unable to read object: %d", resp.StatusCode))
+		return nil, &Error{StatusCode: resp.StatusCode, Err: errors.New("unable to read object")}
 	}
 
 	// parse the result
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		return nil, err
+		return nil, &Error{
+			StatusCode: 500,
+			Err:        err,
+		}
 	}
 
 	return result, nil
 }
 
-func (c *Object) List(className string) (map[string][]map[string]interface{}, error) {
+func (c *Object) List(className string) (map[string][]map[string]interface{}, *Error) {
 	// create the URL
 	listUrl, _ := url.Parse(fmt.Sprintf("/classes/%s", className))
 	listClassUrl := c.baseUrl.ResolveReference(listUrl)
@@ -170,7 +182,7 @@ func (c *Object) List(className string) (map[string][]map[string]interface{}, er
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return nil, err
+		return nil, &Error{StatusCode: 500, Err: err}
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -181,20 +193,23 @@ func (c *Object) List(className string) (map[string][]map[string]interface{}, er
 
 	// check the status code
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(fmt.Sprintf("unable to list object: %d", resp.StatusCode))
+		return nil, &Error{StatusCode: resp.StatusCode, Err: errors.New("unable to list objects")}
 	}
 
 	// parse the result
 	var result map[string][]map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		return nil, err
+		return nil, &Error{
+			StatusCode: 500,
+			Err:        err,
+		}
 	}
 
 	return result, nil
 }
 
-func (c *Object) Update(className string, id string, data map[string]interface{}) (bool, error) {
+func (c *Object) Update(className string, id string, data map[string]interface{}) (bool, *Error) {
 	// create the URL
 	updateUrl, _ := url.Parse(fmt.Sprintf("/classes/%s/%s", className, id))
 	updateClassUrl := c.baseUrl.ResolveReference(updateUrl)
@@ -213,12 +228,12 @@ func (c *Object) Update(className string, id string, data map[string]interface{}
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return false, err
+		return false, &Error{StatusCode: 500, Err: err}
 	}
 
 	// check the status code
 	if resp.StatusCode != http.StatusOK {
-		return false, errors.New(fmt.Sprintf("unable to update object: %d", resp.StatusCode))
+		return false, &Error{StatusCode: resp.StatusCode, Err: errors.New("unable to update object")}
 	}
 
 	return true, nil

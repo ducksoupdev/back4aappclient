@@ -22,9 +22,9 @@ func TestLogin(t *testing.T) {
 	defer svr.Close()
 	b, _ := url.Parse(svr.URL)
 	s := NewUser("applicationId", "restApiKey", nil, b)
-	sessionToken, _ := s.Login("username", "password")
-	assert.NotEmptyf(t, sessionToken, "Expected sessionToken to be initialized")
-	assert.NotEmptyf(t, s.sessionToken, "Expected sessionToken to be initialized")
+	u, _ := s.Login("username", "password")
+	assert.NotEmptyf(t, u["sessionToken"], "Expected sessionToken to be initialized")
+	assert.NotEmptyf(t, s.Session["sessionToken"], "Expected sessionToken to be initialized")
 }
 
 func TestLoginError(t *testing.T) {
@@ -34,8 +34,8 @@ func TestLoginError(t *testing.T) {
 	defer svr.Close()
 	b, _ := url.Parse(svr.URL)
 	s := NewUser("applicationId", "restApiKey", nil, b)
-	item, err := s.Login("username", "password")
-	assert.Equal(t, "", item)
+	u, err := s.Login("username", "password")
+	assert.Equal(t, map[string]interface{}(nil), u)
 	assert.Error(t, err)
 	assert.Equal(t, "unable to login: 400", err.Error())
 }
@@ -51,9 +51,9 @@ func TestSignUp(t *testing.T) {
 	var data = make(map[string]interface{})
 	data["username"] = "username"
 	data["password"] = "password"
-	sessionToken, _ := s.SignUp(data)
-	assert.NotEmptyf(t, sessionToken, "Expected sessionToken to be initialized")
-	assert.NotEmptyf(t, s.sessionToken, "Expected sessionToken to be initialized")
+	u, _ := s.SignUp(data)
+	assert.NotEmptyf(t, u["sessionToken"], "Expected sessionToken to be initialized")
+	assert.NotEmptyf(t, s.Session["sessionToken"], "Expected sessionToken to be initialized")
 }
 
 func TestSignUpError(t *testing.T) {
@@ -66,10 +66,10 @@ func TestSignUpError(t *testing.T) {
 	var data = make(map[string]interface{})
 	data["username"] = "username"
 	data["password"] = "password"
-	sessionToken, err := s.SignUp(data)
-	assert.Equal(t, "", sessionToken)
+	u, err := s.SignUp(data)
+	assert.Equal(t, nil, u["sessionToken"])
 	assert.Error(t, err)
-	assert.Equal(t, "unable to sign up: 400", err.Error())
+	assert.Equal(t, "unable to sign up user: 400", err.Error())
 }
 
 func TestRequestPasswordReset(t *testing.T) {
@@ -93,4 +93,30 @@ func TestRequestPasswordResetError(t *testing.T) {
 	err := s.RequestPasswordReset("email")
 	assert.Error(t, err)
 	assert.Equal(t, "request password reset failed: 400", err.Error())
+}
+
+func TestCurrentUser(t *testing.T) {
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"item":"item"}`))
+	}))
+	defer svr.Close()
+	b, _ := url.Parse(svr.URL)
+	s := NewUser("applicationId", "restApiKey", nil, b)
+	item, _ := s.CurrentUser("sessionToken")
+	assert.NotNil(t, item)
+	assert.Equal(t, "item", item["item"])
+}
+
+func TestCurrentUserError(t *testing.T) {
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer svr.Close()
+	b, _ := url.Parse(svr.URL)
+	s := NewUser("applicationId", "restApiKey", nil, b)
+	u, err := s.CurrentUser("sessionToken")
+	assert.Equal(t, map[string]interface{}(nil), u)
+	assert.Error(t, err)
+	assert.Equal(t, "unable to get current user: 400", err.Error())
 }

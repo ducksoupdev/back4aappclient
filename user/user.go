@@ -43,7 +43,7 @@ func NewUser(applicationId string, restApiKey string, httpClient *http.Client, b
 	return s
 }
 
-func (s *User) Login(username string, password string) (string, error) {
+func (s *User) Login(username string, password string) (map[string]interface{}, error) {
 	// Define the parameters
 	params := url.Values{}
 	params.Add("username", username)
@@ -65,7 +65,7 @@ func (s *User) Login(username string, password string) (string, error) {
 	resp, err := s.client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return "", err
+		return nil, err
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -76,20 +76,19 @@ func (s *User) Login(username string, password string) (string, error) {
 
 	// check the status code
 	if resp.StatusCode != http.StatusOK {
-		return "", errors.New(fmt.Sprintf("unable to login: %d", resp.StatusCode))
+		return nil, errors.New(fmt.Sprintf("unable to login: %d", resp.StatusCode))
 	}
 
 	// Parse the response
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	s.sessionToken = result["sessionToken"].(string)
-	return s.sessionToken, nil
+	return result, nil
 }
 
-func (s *User) SignUp(data map[string]interface{}) (string, error) {
+func (s *User) SignUp(data map[string]interface{}) (map[string]interface{}, error) {
 	// create the URL
 	usersUrl, _ := url.Parse("/users")
 	createUserUrl := s.baseUrl.ResolveReference(usersUrl)
@@ -108,7 +107,7 @@ func (s *User) SignUp(data map[string]interface{}) (string, error) {
 	resp, err := s.client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return "", err
+		return nil, err
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -119,17 +118,16 @@ func (s *User) SignUp(data map[string]interface{}) (string, error) {
 
 	// check the status code
 	if resp.StatusCode != http.StatusCreated {
-		return "", errors.New(fmt.Sprintf("unable to sign up: %d", resp.StatusCode))
+		return nil, errors.New(fmt.Sprintf("unable to sign up: %d", resp.StatusCode))
 	}
 
 	// Parse the response
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	s.sessionToken = result["sessionToken"].(string)
-	return s.sessionToken, nil
+	return result, nil
 }
 
 func (s *User) RequestPasswordReset(email string) error {

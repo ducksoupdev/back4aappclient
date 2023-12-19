@@ -43,7 +43,7 @@ func NewUser(applicationId string, restApiKey string, httpClient *http.Client, b
 	return s
 }
 
-func (s *User) login(username string, password string) (string, error) {
+func (s *User) Login(username string, password string) (string, error) {
 	// Define the parameters
 	params := url.Values{}
 	params.Add("username", username)
@@ -89,7 +89,7 @@ func (s *User) login(username string, password string) (string, error) {
 	return s.sessionToken, nil
 }
 
-func (s *User) signUp(data map[string]interface{}) (string, error) {
+func (s *User) SignUp(data map[string]interface{}) (string, error) {
 	// create the URL
 	usersUrl, _ := url.Parse("/users")
 	createUserUrl := s.baseUrl.ResolveReference(usersUrl)
@@ -132,7 +132,7 @@ func (s *User) signUp(data map[string]interface{}) (string, error) {
 	return s.sessionToken, nil
 }
 
-func (s *User) requestPasswordReset(email string) error {
+func (s *User) RequestPasswordReset(email string) error {
 	// create the URL
 	resetUrl, _ := url.Parse("/requestPasswordReset")
 	requestPasswordResetUrl := s.baseUrl.ResolveReference(resetUrl)

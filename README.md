@@ -31,16 +31,16 @@ login, sign up and request password reset. For example:
 u := user.NewUser("applicationId", "restApiKey")
 
 // login user
-sessionToken, err := user.login("username", "password")
+sessionToken, err := user.Login("username", "password")
 
 // sign up user
 var data = make(map[string]interface{})
 data["username"] = "username"
 data["password"] = "password"
-sessionToken, _ := u.signUp(data)
+sessionToken, _ := u.SignUp(data)
 
 // request password reset
-err := u.requestPasswordReset("email")
+err := u.RequestPasswordReset("email")
 ```
 
 Construct a new object, then use the methods on the object to
@@ -53,22 +53,22 @@ o := object.NewObject("applicationId", "restApiKey", "sessionToken")
 var data = make(map[string]interface{})
 data["name"] = "name"
 data["description"] = "description"
-object, err := o.create("className", data)
+object, err := o.Create("className", data)
 
 // update object
 var data = make(map[string]interface{})
 data["name"] = "name"
 data["description"] = "description"
-isUpdated, err := o.update("className", "objectId", data)
+isUpdated, err := o.Update("className", "objectId", data)
 
 // delete object
-isDeleted, err := o.delete("className", "objectId")
+isDeleted, err := o.Delete("className", "objectId")
 
 // read object
-object, err := o.read("className", "objectId")
+object, err := o.Read("className", "objectId")
 
 // list objects
-objects, err := o.list("className")
+objects, err := o.List("className")
 ```
 
 ## Contributing

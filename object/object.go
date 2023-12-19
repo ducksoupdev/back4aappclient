@@ -44,7 +44,7 @@ func NewObject(applicationId string, restApiKey string, sessionToken string, htt
 	return c
 }
 
-func (c *Object) create(className string, data map[string]interface{}) (map[string]interface{}, error) {
+func (c *Object) Create(className string, data map[string]interface{}) (map[string]interface{}, error) {
 	// create the URL
 	createUrl, _ := url.Parse(fmt.Sprintf("/classes/%s", className))
 	createClassUrl := c.baseUrl.ResolveReference(createUrl)
@@ -87,7 +87,7 @@ func (c *Object) create(className string, data map[string]interface{}) (map[stri
 	return result, nil
 }
 
-func (c *Object) delete(className string, id string) (bool, error) {
+func (c *Object) Delete(className string, id string) (bool, error) {
 	// create the URL
 	deleteUrl, _ := url.Parse(fmt.Sprintf("/classes/%s/%s", className, id))
 	deleteClassUrl := c.baseUrl.ResolveReference(deleteUrl)
@@ -114,7 +114,7 @@ func (c *Object) delete(className string, id string) (bool, error) {
 	return true, nil
 }
 
-func (c *Object) read(className string, id string) (map[string]interface{}, error) {
+func (c *Object) Read(className string, id string) (map[string]interface{}, error) {
 	// create the URL
 	readUrl, _ := url.Parse(fmt.Sprintf("/classes/%s/%s", className, id))
 	readClassUrl := c.baseUrl.ResolveReference(readUrl)
@@ -154,7 +154,7 @@ func (c *Object) read(className string, id string) (map[string]interface{}, erro
 	return result, nil
 }
 
-func (c *Object) list(className string) (map[string][]map[string]interface{}, error) {
+func (c *Object) List(className string) (map[string][]map[string]interface{}, error) {
 	// create the URL
 	listUrl, _ := url.Parse(fmt.Sprintf("/classes/%s", className))
 	listClassUrl := c.baseUrl.ResolveReference(listUrl)
@@ -194,7 +194,7 @@ func (c *Object) list(className string) (map[string][]map[string]interface{}, er
 	return result, nil
 }
 
-func (c *Object) update(className string, id string, data map[string]interface{}) (bool, error) {
+func (c *Object) Update(className string, id string, data map[string]interface{}) (bool, error) {
 	// create the URL
 	updateUrl, _ := url.Parse(fmt.Sprintf("/classes/%s/%s", className, id))
 	updateClassUrl := c.baseUrl.ResolveReference(updateUrl)

@@ -116,6 +116,14 @@ func (s *User) SignUp(data map[string]interface{}) (map[string]interface{}, *Err
 	usersUrl, _ := url.Parse("/users")
 	createUserUrl := s.baseUrl.ResolveReference(usersUrl)
 
+	// Set the session token
+	var sessionToken = ""
+	if data["sessionToken"] != nil {
+		sessionToken = data["sessionToken"].(string)
+		// remove the session token from the data
+		delete(data, "sessionToken")
+	}
+
 	// create the body
 	marshalled, _ := json.Marshal(data)
 
@@ -125,6 +133,11 @@ func (s *User) SignUp(data map[string]interface{}) (map[string]interface{}, *Err
 	req.Header.Add(applicationIdHeader, s.applicationId)
 	req.Header.Add(restApiKeyHeader, s.restApiKey)
 	req.Header.Add(revocableHeader, "1")
+
+	// If we have a session token, add it to the request
+	if sessionToken != "" {
+		req.Header.Add(sessionTokenHeader, sessionToken)
+	}
 
 	// Make the request
 	resp, err := s.client.Do(req)

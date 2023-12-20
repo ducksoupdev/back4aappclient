@@ -56,6 +56,23 @@ func TestSignUp(t *testing.T) {
 	assert.NotEmptyf(t, s.Session["sessionToken"], "Expected sessionToken to be initialized")
 }
 
+func TestSignUpWithSessionToken(t *testing.T) {
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte(`{"objectId":"objectId","createdAt":"createdAt"}`))
+	}))
+	defer svr.Close()
+	b, _ := url.Parse(svr.URL)
+	s := NewUser("applicationId", "restApiKey", nil, b)
+	var data = make(map[string]interface{})
+	data["username"] = "username"
+	data["password"] = "password"
+	data["sessionToken"] = "sessionToken"
+	u, _ := s.SignUp(data)
+	assert.NotEmptyf(t, u["objectId"], "Expected objectId to be initialized")
+	assert.NotEmptyf(t, u["createdAt"], "Expected createdAt to be initialized")
+}
+
 func TestSignUpError(t *testing.T) {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)

@@ -137,3 +137,26 @@ func TestCurrentUserError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "unable to get current user: 400", err.Error())
 }
+
+func TestVerificationEmailRequest(t *testing.T) {
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer svr.Close()
+	b, _ := url.Parse(svr.URL)
+	s := NewUser("applicationId", "restApiKey", nil, b)
+	err := s.VerificationEmailRequest("email")
+	assert.Nil(t, err)
+}
+
+func TestVerificationEmailRequestError(t *testing.T) {
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer svr.Close()
+	b, _ := url.Parse(svr.URL)
+	s := NewUser("applicationId", "restApiKey", nil, b)
+	err := s.VerificationEmailRequest("email")
+	assert.Error(t, err)
+	assert.Equal(t, "verify email request failed: 400", err.Error())
+}

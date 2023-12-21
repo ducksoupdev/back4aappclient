@@ -20,8 +20,9 @@ const (
 )
 
 type Error struct {
-	StatusCode int
-	Err        error
+	StatusCode    int
+	HostErrorCode int
+	Err           error
 }
 
 func (r *Error) Error() string {
@@ -43,6 +44,13 @@ type ListOptions struct {
 	Order       string
 	Distinct    string
 	Constraints string
+}
+
+func getErrorMessage(error string, defaultError string) string {
+	if error == "" {
+		return defaultError
+	}
+	return error
 }
 
 func NewObject(applicationId string, restApiKey string, sessionToken string, httpClient *http.Client, baseUrl *url.URL) *Object {
@@ -90,16 +98,21 @@ func (c *Object) Create(className string, data map[string]interface{}) (map[stri
 		}
 	}(resp.Body)
 
-	// check the status code
-	if resp.StatusCode != http.StatusCreated {
-		return nil, &Error{StatusCode: resp.StatusCode, Err: errors.New("unable to create object")}
-	}
-
 	// parse the result
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
 		return nil, &Error{StatusCode: 500, Err: err}
+	}
+
+	// check the status code
+	if resp.StatusCode != http.StatusCreated {
+		message := getErrorMessage(result["error"].(string), "unable to create object")
+		return nil, &Error{
+			StatusCode:    resp.StatusCode,
+			HostErrorCode: result["code"].(int),
+			Err:           errors.New(message),
+		}
 	}
 
 	return result, nil
@@ -126,7 +139,21 @@ func (c *Object) Delete(className string, id string) (bool, *Error) {
 
 	// check the status code
 	if resp.StatusCode != http.StatusOK {
-		return false, &Error{StatusCode: resp.StatusCode, Err: errors.New("unable to delete object")}
+		// parse the error result
+		var result map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return false, &Error{
+				StatusCode: 500,
+				Err:        err,
+			}
+		}
+		message := getErrorMessage(result["error"].(string), "unable to delete object")
+		return false, &Error{
+			StatusCode:    resp.StatusCode,
+			HostErrorCode: result["code"].(int),
+			Err:           errors.New(message),
+		}
 	}
 
 	return true, nil
@@ -157,11 +184,6 @@ func (c *Object) Read(className string, id string) (map[string]interface{}, *Err
 		}
 	}(resp.Body)
 
-	// check the status code
-	if resp.StatusCode != http.StatusOK {
-		return nil, &Error{StatusCode: resp.StatusCode, Err: errors.New("unable to read object")}
-	}
-
 	// parse the result
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -169,6 +191,16 @@ func (c *Object) Read(className string, id string) (map[string]interface{}, *Err
 		return nil, &Error{
 			StatusCode: 500,
 			Err:        err,
+		}
+	}
+
+	// check the status code
+	if resp.StatusCode != http.StatusOK {
+		message := getErrorMessage(result["error"].(string), "unable to read object")
+		return nil, &Error{
+			StatusCode:    resp.StatusCode,
+			HostErrorCode: result["code"].(int),
+			Err:           errors.New(message),
 		}
 	}
 
@@ -228,7 +260,21 @@ func (c *Object) List(className string, option ...ListOptions) (map[string][]map
 
 	// check the status code
 	if resp.StatusCode != http.StatusOK {
-		return nil, &Error{StatusCode: resp.StatusCode, Err: errors.New("unable to list objects")}
+		// parse the error result
+		var result map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return nil, &Error{
+				StatusCode: 500,
+				Err:        err,
+			}
+		}
+		message := getErrorMessage(result["error"].(string), "unable to list objects")
+		return nil, &Error{
+			StatusCode:    resp.StatusCode,
+			HostErrorCode: result["code"].(int),
+			Err:           errors.New(message),
+		}
 	}
 
 	// parse the result
@@ -268,7 +314,21 @@ func (c *Object) Update(className string, id string, data map[string]interface{}
 
 	// check the status code
 	if resp.StatusCode != http.StatusOK {
-		return false, &Error{StatusCode: resp.StatusCode, Err: errors.New("unable to update object")}
+		// parse the error result
+		var result map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return false, &Error{
+				StatusCode: 500,
+				Err:        err,
+			}
+		}
+		message := getErrorMessage(result["error"].(string), "unable to update object")
+		return false, &Error{
+			StatusCode:    resp.StatusCode,
+			HostErrorCode: result["code"].(int),
+			Err:           errors.New(message),
+		}
 	}
 
 	return true, nil

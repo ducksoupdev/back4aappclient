@@ -21,8 +21,9 @@ const (
 )
 
 type Error struct {
-	StatusCode int
-	Err        error
+	StatusCode    int
+	HostErrorCode int
+	Err           error
 }
 
 func (r *Error) Error() string {
@@ -35,6 +36,13 @@ type User struct {
 	applicationId string
 	restApiKey    string
 	Session       map[string]interface{}
+}
+
+func getErrorMessage(error string, defaultError string) string {
+	if error == "" {
+		return defaultError
+	}
+	return error
 }
 
 func NewUser(applicationId string, restApiKey string, httpClient *http.Client, baseUrl *url.URL) *User {
@@ -87,14 +95,6 @@ func (s *User) Login(username string, password string) (map[string]interface{}, 
 		}
 	}(resp.Body)
 
-	// check the status code
-	if resp.StatusCode != http.StatusOK {
-		return nil, &Error{
-			StatusCode: resp.StatusCode,
-			Err:        errors.New("unable to login"),
-		}
-	}
-
 	// Parse the response
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -102,6 +102,16 @@ func (s *User) Login(username string, password string) (map[string]interface{}, 
 		return nil, &Error{
 			StatusCode: 500,
 			Err:        err,
+		}
+	}
+
+	// check the status code
+	if resp.StatusCode != http.StatusOK {
+		message := getErrorMessage(result["error"].(string), "unable to login")
+		return nil, &Error{
+			StatusCode:    resp.StatusCode,
+			HostErrorCode: result["code"].(int),
+			Err:           errors.New(message),
 		}
 	}
 
@@ -155,14 +165,6 @@ func (s *User) SignUp(data map[string]interface{}) (map[string]interface{}, *Err
 		}
 	}(resp.Body)
 
-	// check the status code
-	if resp.StatusCode != http.StatusCreated {
-		return nil, &Error{
-			StatusCode: resp.StatusCode,
-			Err:        errors.New("unable to sign up user"),
-		}
-	}
-
 	// Parse the response
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -170,6 +172,16 @@ func (s *User) SignUp(data map[string]interface{}) (map[string]interface{}, *Err
 		return nil, &Error{
 			StatusCode: 500,
 			Err:        err,
+		}
+	}
+
+	// check the status code
+	if resp.StatusCode != http.StatusCreated {
+		message := getErrorMessage(result["error"].(string), "unable to sign up user")
+		return nil, &Error{
+			StatusCode:    resp.StatusCode,
+			HostErrorCode: result["code"].(int),
+			Err:           errors.New(message),
 		}
 	}
 
@@ -210,9 +222,20 @@ func (s *User) RequestPasswordReset(email string) *Error {
 
 	// Parse the response
 	if resp.StatusCode != http.StatusOK {
+		// parse the error result
+		var result map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return &Error{
+				StatusCode: 500,
+				Err:        err,
+			}
+		}
+		message := getErrorMessage(result["error"].(string), "request password reset failed")
 		return &Error{
-			StatusCode: resp.StatusCode,
-			Err:        errors.New("request password reset failed"),
+			StatusCode:    resp.StatusCode,
+			HostErrorCode: result["code"].(int),
+			Err:           errors.New(message),
 		}
 	}
 
@@ -247,14 +270,6 @@ func (s *User) CurrentUser(sessionToken string) (map[string]interface{}, *Error)
 		}
 	}(resp.Body)
 
-	// check the status code
-	if resp.StatusCode != http.StatusOK {
-		return nil, &Error{
-			StatusCode: resp.StatusCode,
-			Err:        errors.New("unable to get current user"),
-		}
-	}
-
 	// Parse the response
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -264,6 +279,17 @@ func (s *User) CurrentUser(sessionToken string) (map[string]interface{}, *Error)
 			Err:        err,
 		}
 	}
+
+	// check the status code
+	if resp.StatusCode != http.StatusOK {
+		message := getErrorMessage(result["error"].(string), "unable to get current user")
+		return nil, &Error{
+			StatusCode:    resp.StatusCode,
+			HostErrorCode: result["code"].(int),
+			Err:           errors.New(message),
+		}
+	}
+
 	return result, nil
 }
 
@@ -299,9 +325,20 @@ func (s *User) VerificationEmailRequest(email string) *Error {
 
 	// Parse the response
 	if resp.StatusCode != http.StatusOK {
+		// parse the error result
+		var result map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return &Error{
+				StatusCode: 500,
+				Err:        err,
+			}
+		}
+		message := getErrorMessage(result["error"].(string), "verify email request failed")
 		return &Error{
-			StatusCode: resp.StatusCode,
-			Err:        errors.New("verify email request failed"),
+			StatusCode:    resp.StatusCode,
+			HostErrorCode: result["code"].(int),
+			Err:           errors.New(message),
 		}
 	}
 

@@ -39,8 +39,22 @@ data["username"] = "username"
 data["password"] = "password"
 sessionToken, _ := u.SignUp(data)
 
+// if user records are protected
+// sign up user with session token in the body
+var data = make(map[string]interface{})
+data["username"] = "username"
+data["password"] = "password"
+data["sessionToken"] = "sessionToken"
+sessionToken, _ := u.SignUp(data)
+
+// current user
+user, err := u.CurrentUser("sessionToken")
+
 // request password reset
 err := u.RequestPasswordReset("email")
+
+// request email verification
+err := u.VerificationEmailRequest("email")
 ```
 
 Construct a new object, then use the methods on the object to
@@ -69,6 +83,21 @@ object, err := o.Read("className", "objectId")
 
 // list objects
 objects, err := o.List("className")
+
+// count objects
+objects, err := o.List("className", WithCount(10))
+
+// limit objects
+objects, err := o.List("className", WithLimit(10))
+
+// skip objects
+objects, err := o.List("className", WithSkip(10))
+
+// order objects
+objects, err := o.List("className", WithOrder("name"))
+
+// objects with constraints
+objects, err := o.List("className", WithConstraints("{"title": "My post title", "likes": { "$gt": 100 }}"))
 ```
 
 ## Contributing

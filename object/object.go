@@ -36,6 +36,15 @@ type Object struct {
 	sessionToken  string
 }
 
+type ListOptions struct {
+	Count       int
+	Limit       int
+	Skip        int
+	Order       string
+	Distinct    string
+	Constraints string
+}
+
 func NewObject(applicationId string, restApiKey string, sessionToken string, httpClient *http.Client, baseUrl *url.URL) *Object {
 	c := &Object{
 		httpClient:    httpClient,
@@ -166,9 +175,35 @@ func (c *Object) Read(className string, id string) (map[string]interface{}, *Err
 	return result, nil
 }
 
-func (c *Object) List(className string) (map[string][]map[string]interface{}, *Error) {
+func (c *Object) List(className string, option ...ListOptions) (map[string][]map[string]interface{}, *Error) {
 	// create the URL
 	listUrl, _ := url.Parse(fmt.Sprintf("/classes/%s", className))
+
+	// create the query string parameters
+	for _, opt := range option {
+		q := listUrl.Query()
+		if opt.Count != 0 {
+			q.Set("count", fmt.Sprintf("%d", opt.Count))
+		}
+		if opt.Limit != 0 {
+			q.Set("limit", fmt.Sprintf("%d", opt.Limit))
+		}
+		if opt.Skip != 0 {
+			q.Set("skip", fmt.Sprintf("%d", opt.Skip))
+		}
+		if opt.Order != "" {
+			q.Set("order", opt.Order)
+		}
+		if opt.Distinct != "" {
+			q.Set("distinct", opt.Distinct)
+		}
+		if opt.Constraints != "" {
+			q.Set("where", opt.Constraints)
+		}
+		listUrl.RawQuery = q.Encode()
+	}
+
+	// create the URL
 	listClassUrl := c.baseUrl.ResolveReference(listUrl)
 
 	// create the request
@@ -237,4 +272,40 @@ func (c *Object) Update(className string, id string, data map[string]interface{}
 	}
 
 	return true, nil
+}
+
+func WithCount(i int) ListOptions {
+	return ListOptions{
+		Count: i,
+	}
+}
+
+func WithSkip(i int) ListOptions {
+	return ListOptions{
+		Skip: i,
+	}
+}
+
+func WithLimit(i int) ListOptions {
+	return ListOptions{
+		Limit: i,
+	}
+}
+
+func WithOrder(s string) ListOptions {
+	return ListOptions{
+		Order: s,
+	}
+}
+
+func WithDistinct(s string) ListOptions {
+	return ListOptions{
+		Distinct: s,
+	}
+}
+
+func WithConstraints(s string) ListOptions {
+	return ListOptions{
+		Constraints: s,
+	}
 }

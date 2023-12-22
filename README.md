@@ -100,6 +100,18 @@ objects, err := o.List("className", WithOrder("name"))
 objects, err := o.List("className", WithConstraints("{"title": "My post title", "likes": { "$gt": 100 }}"))
 ```
 
+## License
+
+This project is licensed under the MIT License - see the [`LICENSE`](LICENSE) file for details.
+
 ## Contributing
 
-TODO
+Any kind of positive contribution is welcome! Please help us to grow by contributing to the project.
+
+If you wish to contribute, you can work on any features you think would enhance the library. After adding your code, please send us a Pull Request.
+
+> Please read [CONTRIBUTING](CONTRIBUTING.md) for details on our [CODE OF CONDUCT](CODE_OF_CONDUCT.md), and the process for submitting pull requests to us.
+
+## Support
+
+We all need support and motivation. Please give this project a ⭐️ to encourage and show that you liked it. Don't forget to leave a star ⭐️ before you move away.

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -29,7 +30,7 @@ func (c *Object) Update(className string, id string, data map[string]interface{}
 	// make the request
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Error: ", err)
 		return false, &Error{StatusCode: 500, Err: err}
 	}
 

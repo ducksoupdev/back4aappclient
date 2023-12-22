@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -43,7 +43,7 @@ func (s *User) SignUp(data map[string]interface{}) (map[string]interface{}, *Err
 	// Make the request
 	resp, err := s.client.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Error: ", err)
 		return nil, &Error{
 			StatusCode: 500,
 			Err:        err,
@@ -52,7 +52,7 @@ func (s *User) SignUp(data map[string]interface{}) (map[string]interface{}, *Err
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println(err)
+			log.Println("Error: ", err)
 		}
 	}(resp.Body)
 

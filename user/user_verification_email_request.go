@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -29,7 +30,7 @@ func (s *User) VerificationEmailRequest(email string) *Error {
 	// Make the request
 	resp, err := s.client.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Error: ", err)
 		return &Error{
 			StatusCode: 500,
 			Err:        err,
@@ -38,7 +39,7 @@ func (s *User) VerificationEmailRequest(email string) *Error {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println(err)
+			log.Println("Error: ", err)
 		}
 	}(resp.Body)
 

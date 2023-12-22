@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -52,13 +53,13 @@ func (c *Object) List(className string, option ...ListOptions) (map[string][]map
 	// make the request
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Error: ", err)
 		return nil, &Error{StatusCode: 500, Err: err}
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println(err)
+			log.Println("Error: ", err)
 		}
 	}(resp.Body)
 

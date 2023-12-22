@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -25,7 +26,7 @@ func (c *Object) Delete(className string, id string) (bool, *Error) {
 	// make the request
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Error: ", err)
 		return false, &Error{StatusCode: 500, Err: err}
 	}
 

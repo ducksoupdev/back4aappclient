@@ -9,6 +9,7 @@ Back4app is compatible with modern Go releases in module mode, with Go installed
 ```bash
 go get github.com/ducksoupdev/back4app/user
 go get github.com/ducksoupdev/back4app/object
+go get github.com/ducksoupdev/back4app/util
 ```
 
 will resolve and add the package to the current development module, along with its dependencies.
@@ -18,11 +19,14 @@ Alternatively the same can be achieved if you use import in a package:
 ```go
 import "github.com/ducksoupdev/back4app/user"
 import "github.com/ducksoupdev/back4app/object"
+import "github.com/ducksoupdev/back4app/util"
 ```
 
 and run `go get` without parameters.
 
 ## Usage
+
+### User
 
 Construct a new user, then use the methods on the user to
 login, sign up and request password reset. For example:
@@ -56,6 +60,8 @@ err := u.RequestPasswordReset("email")
 // request email verification
 err := u.VerificationEmailRequest("email")
 ```
+
+### Object
 
 Construct a new object, then use the methods on the object to
 create, update, delete and query objects. For example:
@@ -98,6 +104,15 @@ objects, err := o.List("className", WithOrder("name"))
 
 // objects with constraints
 objects, err := o.List("className", WithConstraints("{"title": "My post title", "likes": { "$gt": 100 }}"))
+```
+
+### Utility functions
+
+The util package contains some useful functions. For example:
+
+```go
+// generate a back4app date object
+date := utility.ToBack4AppDate('2020-01-01T00:00:00.000Z')
 ```
 
 ## License

@@ -113,6 +113,12 @@ The util package contains some useful functions. For example:
 ```go
 // generate a back4app date object
 date := utility.ToBack4AppDate('2020-01-01T00:00:00.000Z')
+
+// convert a back4app date object to a time.Time object
+time, err := utility.Back4AppDateToTime(date)
+
+// convert a back4app date object to a string
+str := utility.Back4AppDateToIsoString(date)
 ```
 
 ## License

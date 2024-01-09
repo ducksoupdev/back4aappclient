@@ -14,6 +14,10 @@ func ToBack4AppDate(date string) Back4AppDate {
 	}
 }
 
+func ParseBack4AppDate(date map[string]interface{}) Back4AppDate {
+	return ToBack4AppDate(date["iso"].(string))
+}
+
 func Back4AppDateToIsoString(date Back4AppDate) string {
 	return date.Iso
 }

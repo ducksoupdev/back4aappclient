@@ -114,6 +114,9 @@ The util package contains some useful functions. For example:
 // generate a back4app date object
 date := utility.ToBack4AppDate('2020-01-01T00:00:00.000Z')
 
+// parse a back4app date object from map[string]interface{}
+date := utility.ParseBack4AppDate(map[string]interface{}{"__type": "Date", "iso": "2020-01-01T00:00:00.000Z"})
+
 // convert a back4app date object to a time.Time object
 time, err := utility.Back4AppDateToTime(date)
 
